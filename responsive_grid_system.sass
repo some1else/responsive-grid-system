@@ -1,0 +1,134 @@
+// Responsive Grid System
+// CC-BY http://some1else.github.com
+
+////// Hidden Elements //////
+
+.hidden
+  display: none
+
+// Generates hidden style for $context
+=generate_hider($context)
+  .#{$context}_hidden
+    @extend .hidden
+
+////// Clear fix //////
+
+.cleared
+  *zoom: 1
+  &:before, &:after
+    display: table
+    content: ""
+  &:after
+    clear: both
+
+=cleared()
+  @extend .cleared
+
+////// Containers //////
+
+// Warning, not IE6 safe
+.contained
+  margin:
+    left: auto
+    right: auto
+
+// Generates container style for $context
+=generate_container($context, $width)
+  .#{$context}_container
+    @extend .contained
+    width: $width
+
+////// Positioning //////
+
+// All grid columns are positioned
+.positioned
+  float: left
+  display: inline-block
+
+// Makes all grid columns and rows floated
+=positioned()
+  @extend .positioned
+
+////// Gutters //////
+
+// Generates gutter style for $context
+=generate_gutter($context, $gutter)
+  .#{$context}_gutter
+    margin:
+      left: $gutter
+      right: $gutter
+
+// Makes all grid columns guttered
+=guttered($context)
+  @extend .#{$context}_gutter
+
+////// Columns //////
+
+// Column width mixin
+=column_width($n, $width, $columns, $gutter)
+  $column: ($width / $columns) - $gutter
+  width: ($column * $n) + ($gutter * ($n - 1))
+
+// Row width mixin for $context
+=row_width($n, $width, $columns, $gutter)
+  $column: ($width / $columns) - $gutter
+  width: ($column * $n) + ($gutter * $n)
+
+////// Grid //////
+
+// Generates container, gutter, column and row styles for $context
+=generate_grid($context, $width, $columns, $gutter)
+
+  @for $n from 1 through $columns
+
+    // Default column and column in context, works with overrides
+    .col_#{$n}, .#{$context}_col_#{$n}
+      +positioned
+      +guttered($context)
+      +column_width($n, $width, $columns, $gutter)
+
+    // Default row and row in context
+    .row_#{$n}, .#{$context}_row_#{$n}
+      +cleared
+      +positioned
+      +row_width($n, $width, $columns, $gutter)
+
+////// PUBLIC API //////
+
+// TODO: Impossible to evaluate stuff next to @media in SASS
+// Generates media selector and grid for $context
+// =media($context: all, $query: "all", $width: 960, $columns: 12, $gutter: 20, $unit: px)
+//   @media $query
+//     +generate_grid($context, $width, $columns, $gutter, $unit)
+
+// Syntactic sugar that trails @media query
+=uses_grid($context: all, $width: 960px, $columns: 12, $gutter: 20px)
+  +generate_hider($context)
+  +generate_container($context, $width)
+  +generate_gutter($context, $gutter)
+  +generate_grid($context, $width, $columns, $gutter)
+
+// Makes element a container in $context
+=container($context: all)
+  @if $context == all
+    @extend .container
+  @else
+    @extend .#{$context}_container
+
+// Makes element a row in $context
+=row($size: 12, $context: all)
+  @if $context == all
+    @extend .row_#{$size}
+  @else
+    @extend .#{$context}_row_#{$size}
+
+// Makes element a column in $context
+=col($size: 12, $context: all)
+  @if $context == all
+    @extend .col_#{$size}
+  @else
+    @extend .#{$context}_col_#{$size}
+
+// Hides an element in $context
+=hide($context)
+  @extend .#{$context}_hidden
