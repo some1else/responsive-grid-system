@@ -13,7 +13,7 @@ This is how basic usage looks in `.sass`. Of course, only the syntax changes for
 		// context name, grid width, number of columns, gutter width
 
 	@media (min-width: 480px) and (max-width: 960px)
-		+uses_grid(medium, 90%, 12, 5%)
+		+uses_grid(medium, 100%, 12, 5%)
 
 	@media (min-width: 960px) and (max-width: 1200px)
 		+uses_grid(screen, 960px, 12, 20px)
@@ -27,10 +27,11 @@ This is how basic usage looks in `.sass`. Of course, only the syntax changes for
 			+col(12) // in all contexts
 			+hide(handheld) // only hidden in handheld context
 		p
-			+col(4) // in all contexts
+			+col(6, medium, screen) // half the layout size in a few contexts
+			+col(4, huge) // a third of the layout size in a specific context
 			+col(12, handheld) // only full width in handheld context
 
-Check out the source for the public API and see demo.sass for a more elaborate example
+Check out the source for the public API
 
 ## Implementation details
 
@@ -53,7 +54,6 @@ Becomes:
 		float: left;
 		display: inline-block;
 	}
-
 	.element, .another {
 		width: 200px;
 	}
@@ -66,8 +66,6 @@ While there have been many sound arguments for defining style outside of the HTM
 
 ## Status
 
-* Missing a generated demo presentation.
+* Working on simplifying @media exceptions anywhere in the selector hierarchy
+* Perparing test, demo, docs
 * This is currently a proof of concept, not production-quality code. It has not been tested in old browsers.
-* Percentage based layout needs tinkering.
-* Mixins might be better of defined as functions (will help generate @media queries)
-* There has to be a way to implement or fake splats (arbitrary number of arguments to col, row and hide functions)
