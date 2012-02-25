@@ -32,7 +32,12 @@
 // All grid columns are positioned
 .positioned
   float: left
+  display: -moz-inline-box
+  -moz-box-orient: vertical
   display: inline-block
+  vertical-align: middle
+  *vertical-aign: auto
+  *display: inline
 
 // Makes all grid columns and rows floated
 =positioned()
