@@ -15,19 +15,15 @@
 
 ////// Containers //////
 
-// Warning, not IE6 safe
-.contained
-  margin:
-    left: auto
-    right: auto
-
 // Generates container style for $context
-=generate_container($context, $width)
+=generate_container($context, $width, $gutter)
   .#{$context}_container, .container
-    @extend .contained
+    @extend .cleared
     width: $width
+    padding: $gutter/2
+    margin: 0 auto
 
-////// Positionin //////
+////// Positioning //////
 
 // All grid columns are positioned
 .positioned
@@ -56,24 +52,41 @@
       left: 0
       right: 0
 
-// Makes all grid columns guttered
+// Makes grid columns guttered
 =guttered($context)
   @extend .#{$context}_gutter
 
 =unguttered
   @extend .ungutter
 
-////// Columns //////
-
-// Column width mixin
-=column_width($n, $width, $columns, $gutter)
-  $column: ($width / $columns) - $gutter
-  width: ($column * $n) + ($gutter * ($n - 1))
+////// Grid //////
 
 // Row width mixin for $context
 =row_width($n, $width, $columns, $gutter)
+  @if unit($width) == "%"
+    $width: 100%
   $column: ($width / $columns) - $gutter
   width: ($column * $n) + ($gutter * $n)
+
+// Column width mixin
+=column_width($n, $width, $columns, $gutter)
+  @if unit($width) == "%"
+    $width: 100%
+  $column: ($width / $columns) - $gutter
+  width: ($column * $n) + ($gutter * ($n - 1))
+
+// Change this to suit your 'reset'
+// 2 * 4px padding + 2 * 1px border
+$input_padding: 10 !default
+
+// Input width dimensions take padding into account
+=input_width($n, $width, $columns, $gutter)
+  $column: ($width / $columns) - $gutter
+  width: ($column * $n) + ($gutter * ($n - 1)) - $input_padding
+
+=offset($n, $width, $columns, $gutter, $appendix: 0)
+  $column: ($width/ $columns) - $gutter
+  margin-left: $n * $column + $gutter * $n + $appendix
 
 ////// Hidden Elements //////
 
@@ -105,31 +118,40 @@
   $column: ($width / $columns) - $gutter
 
   @for $n from 1 through $columns
+    
+    // Default row and row in context
+    // Contexts are specified second so overrides work
+    .row_#{$n}, .#{$context}_row_#{$n}
+      +positioned
+      +row_width($n, $width, $columns, $gutter)
 
-    // Default column and column in context, works with overrides
+    // General "width" styles, useful if you don't want to
+    // extend +positioned and +guttered
+    .width_#{$n}, .#{$context}_width_#{$n}
+      +column_width($n, $width, $columns, $gutter)
+
+    // Column styles
     .col_#{$n}, .#{$context}_col_#{$n}
       +positioned
       +guttered($context)
-      +column_width($n, $width, $columns, $gutter)
+      @extend .#{$context}_width_#{$n}
 
-    // Default row and row in context
-    .row_#{$n}, .#{$context}_row_#{$n}
-      //+cleared
+    // Input styles
+    .input_#{$n}, .#{$context}_input_#{$n}
       +positioned
-      +unguttered
-      +row_width($n, $width, $columns, $gutter)
+      +guttered($context)
+      +input_width($n, $width, $columns, $gutter)
+    
+    // Push styles implemented in two ways because
+    // columns have margins and rows do not
 
-    // Prepend and append padding
-    .prepend_#{$n}, .#{$context}_prepend_#{$n}
-      padding-left: $n * $column + $gutter * $n
-    .append_#{$n}, .#{$context}_append_#{$n}
-      padding-right: $n * $column + $gutter * $n
+    // Pushes rows $n grid columns to the right
+    .push_row_#{$n}, .#{$context}_push_row_#{$n}
+      +offset($n, $width, $columns, $gutter)
+    // Pushes columns $n grid columns to the right
+    .push_col_#{$n}, .#{$context}_push_col_#{$n}
+      +offset($n, $width, $columns, $gutter, $gutter * .5)
 
-    // Prefix and suffix margins
-    .prefix_#{$n}, .#{$context}_prefix_#{$n}
-      margin-left: $n * $column + $gutter * ($n - 1) + $gutter * 1.5
-    .suffix_#{$n}, .#{$context}_suffix_#{$n}
-      margin-right: $n * $column + $gutter * ($n - 1) + $gutter * 1.5
 
 ////// PUBLIC API //////
 
@@ -141,98 +163,40 @@
 
 // Syntactic sugar that trails @media query
 =uses_grid($context: all, $width: 960px, $columns: 12, $gutter: 20px)
-  +generate_container($context, $width)
+  +generate_container($context, $width - $gutter, $gutter)
   +generate_gutter($context, $gutter)
-  +generate_grid($context, $width, $columns, $gutter)
+  +generate_grid($context, $width - $gutter, $columns, $gutter)
   +generate_hider($context)
 
 
 // Makes element a container in $context
-=container($context: all)
-  @if $context == all
-    @extend .container
-  @else
-    @extend .#{$context}_container
+=container($context: all, $c2: unset, $c3: unset, $c4: unset)
+  +multi_extend(container, $context, $c2, $c3, $c4)
 
 // Makes element a row in $context
 =row($size: 12, $context: all, $c2: unset, $c3: unset, $c4: unset)
-  @if $context == all
-    @extend .row_#{$size}
-  @else
-    @extend .#{$context}_row_#{$size}
-  @if $c2 != unset
-    @extend .#{$c2}_row_#{$size}
-  @if $c3 != unset
-    @extend .#{$c3}_row_#{$size}
-  @if $c4 != unset
-    @extend .#{$c4}_row_#{$size}
+  $selector: row_#{$size}
+  +multi_extend($selector, $context, $c2, $c3, $c4)
 
 // Makes element a column in $context
 =col($size: 12, $context: all, $c2: unset, $c3: unset, $c4: unset)
-  @if $context == all
-    @extend .col_#{$size}
-  @else
-    @extend .#{$context}_col_#{$size}
-  @if $c2 != unset
-    @extend .#{$c2}_col_#{$size}
-  @if $c3 != unset
-    @extend .#{$c3}_col_#{$size}
-  @if $c4 != unset
-    @extend .#{$c4}_col_#{$size}
+  $selector: col_#{$size}
+  +multi_extend($selector, $context, $c2, $c3, $c4)
 
-// Makes elements padded
-=prepend($size:11, $context: all, $c2: unset, $c3: unset, $c4: unset)
-  @if $context == all
-    @extend .prepend_#{$size}
-  @else
-    @extend .#{$context}_prepend_#{$size}
-  @if $c2 != unset
-    @extend .#{$c2}_prepend_#{$size}
-  @if $c3 != unset
-    @extend .#{$c3}_prepend_#{$size}
-  @if $c4 != unset
-    @extend .#{$c4}_prepend_#{$size}
-=append($size:11, $context: all, $c2: unset, $c3: unset, $c4: unset)
-  @if $context == all
-    @extend .append_#{$size}
-  @else
-    @extend .#{$context}_append_#{$size}
-  @if $c2 != unset
-    @extend .#{$c2}_append_#{$size}
-  @if $c3 != unset
-    @extend .#{$c3}_append_#{$size}
-  @if $c4 != unset
-    @extend .#{$c4}_append_#{$size}
-// Makes elements marginal
-=prefix($size:11, $context: all, $c2: unset, $c3: unset, $c4: unset)
-  @if $context == all
-    @extend .prefix_#{$size}
-  @else
-    @extend .#{$context}_prefix_#{$size}
-  @if $c2 != unset
-    @extend .#{$c2}_prefix_#{$size}
-  @if $c3 != unset
-    @extend .#{$c3}_prefix_#{$size}
-  @if $c4 != unset
-    @extend .#{$c4}_prefix_#{$size}
-=suffix($size:11, $context: all, $c2: unset, $c3: unset, $c4: unset)
-  @if $context == all
-    @extend .suffix_#{$size}
-  @else
-    @extend .#{$context}_suffix_#{$size}
-  @if $c2 != unset
-    @extend .#{$c2}_suffix_#{$size}
-  @if $c3 != unset
-    @extend .#{$c3}_suffix_#{$size}
-  @if $c4 != unset
-    @extend .#{$c4}_suffix_#{$size}
+// Inputs usually have padding and borders. To take this into account, set the 
+=input($size: 12, $context: all, $c2: unset, $c3: unset, $c4: unset)
+  $selector: input_#{$size}
+  +multi_extend($selector, $context, $c2, $c3, $c4)
 
+=push_row($size: 12, $context: all, $c2: unset, $c3: unset, $c4: unset)
+  $selector: push_row_#{$size}
+  +multi_extend($selector, $context, $c2, $c3, $c4)
+
+=push_col($size: 12, $context: all, $c2: unset, $c3: unset, $c4: unset)
+  $selector: push_col_#{$size}
+  +multi_extend($selector, $context, $c2, $c3, $c4)
+    
 // Hides an element in $context
 =hide($context: all, $c2: unset, $c3: unset, $c4: unset)
-  @extend .#{$context}_hidden
-  @if $c2 != unset
-    @extend .#{$c2}_hidden
-  @if $c3 != unset
-    @extend .#{$c3}_hidden
-  @if $c4 != unset
-    @extend .#{$c4}_hidden
+  $selector: hidden
+  +multi_extend($selector, $context, $c2, $c3, $c4)
