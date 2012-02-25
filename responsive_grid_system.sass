@@ -3,9 +3,15 @@
 
 ////// Util //////
 
-=multi_extend($style, $c1, $c2, $c3, $c4)
-  @each $context in $c1, $c2, $c3, $c4
-    @extend .#{$context}_#{$style}
+// Used to abbreviate public API's handling of *splats
+=multi_extend($selector, $context: all, $c2: unset, $c3: unset, $c4: unset)
+  @if $context == all
+    @extend .#{$selector}
+  @else
+    @extend .#{$context}_#{$selector}
+    @each $other_context in $c2, $c3, $c4
+      @if $other_context != unset
+        @extend .#{$other_context}_#{$selector}
 
 ////// Containers //////
 
