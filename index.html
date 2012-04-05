@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Responsive-grid-system by Some1Else</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Responsive-grid-system</h1>
+        <p>A minimal, responsive grid system in SASS</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/Some1Else/responsive-grid-system" class="button fork"><strong>Fork On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/Some1Else/responsive-grid-system/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/Some1Else/responsive-grid-system/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1>Responsive Grid System</h1>
+
+<p>A <em>responsive</em> grid system in <code>SASS</code>. Lets you define <strong>contexts</strong> and refer to them when specifying sizes for elements.</p>
+
+<h2>Usage</h2>
+
+<p>This is how basic usage looks in <code>.sass</code>. Of course, only the syntax changes for <code>.scss</code>.</p>
+
+<pre><code>@import responsive_grid_system
+
+@media (max-width: 480px)
+    +uses_grid(small, 100%, 12, 2%)
+    // context name, grid width, number of columns, gutter width
+
+@media (min-width: 480px) and (max-width: 960px)
+    +uses_grid(medium, 100%, 12, 5%)
+
+@media (min-width: 960px) and (max-width: 1200px)
+    +uses_grid(screen, 960px, 12, 20px)
+
+@media (min-width: 1200px)
+    +uses_grid(huge, 1140px, 12, 40px)
+
+body
+    +container
+    h1
+        +col(12) // in all contexts
+        +hide(handheld) // only hidden in handheld context
+    p
+        +col(6, medium, screen) // half the layout size in a few contexts
+        +col(4, huge) // a third of the layout size in a specific context
+        +col(12, handheld) // only full width in handheld context
+</code></pre>
+
+<p>Check out the source for the public API</p>
+
+<h2>Implementation details</h2>
+
+<p>Responsive Grid System uses <code>@extend</code> instead of <code>@mixin</code> internally, which compacts the code by concatenating selectors to only define a given style once:</p>
+
+<p>Input:</p>
+
+<pre><code>.element
+    +col(2)
+
+.another
+    +col(2)
+
+.andanother
+    +col(4)
+</code></pre>
+
+<p>Becomes:</p>
+
+<pre><code>.element, .another, .andanother {
+    float: left;
+    display: inline-block;
+}
+.element, .another {
+    width: 200px;
+}
+.andanother {
+    width: 400px;
+} 
+</code></pre>
+
+<p>While there have been many sound arguments for defining style outside of the HTML (unlike most grid systems, which require adding class names to the DOM), the generated stylesheets were mostly inflated due to constant repetition of the grid styles. Use of <code>@extend</code> successfully mitigates the impact of generated code on file size.</p>
+
+<h2>Status</h2>
+
+<ul>
+<li>Working on simplifying <a href="/media" class="user-mention">@media</a> exceptions anywhere in the selector hierarchy</li>
+<li>Perparing test, demo, docs</li>
+<li>This is currently a proof of concept, not production-quality code. It has not been tested in old browsers.</li>
+</ul>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/Some1Else">Some1Else</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
